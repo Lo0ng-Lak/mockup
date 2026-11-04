@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tool Mockup Áo — Urbanhomevibe</title>
+<title>Tool Mockup Sản Phẩm — Urbanhomevibe</title>
 <style>
   :root{
     --bg:#17181c; --panel:#1f2126; --panel2:#26282f; --line:#34363f;
@@ -43,7 +43,7 @@
   .baseItem.active{border-color:var(--clay)}
   .baseItem img{width:52px; height:52px; object-fit:cover; border-radius:6px; background:#000; flex:0 0 52px}
   .baseItem .grow{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px}
-  .baseItem .row{display:flex; gap:6px; align-items:center}
+  .baseItem .row{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .baseItem .row .small{flex:0 0 auto}
   .baseItem label.chk{font-size:12.5px; color:var(--dim)}
 
@@ -73,8 +73,8 @@
 </head>
 <body>
 <header>
-  <h1>Tool Mockup Áo <span>· Urbanhomevibe</span></h1>
-  <div class="hint">Nạp áo trơn → đặt khung in → thả hàng loạt file thiết kế → xuất ảnh chuẩn shop 1000×1000 WebP</div>
+  <h1>Tool Mockup Sản Phẩm <span>· Urbanhomevibe</span></h1>
+  <div class="hint">Nạp sản phẩm trơn → đặt khung in → thả hàng loạt file thiết kế → xuất ảnh chuẩn shop 1000×1000 WebP</div>
   <div class="sp"></div>
   <div id="progress"></div>
   <button id="btnExport" class="primary" disabled>Xuất ảnh đã chọn</button>
@@ -82,11 +82,11 @@
 <main>
   <aside>
     <section>
-      <h2>1 · Áo mẫu (mỗi ảnh = 1 màu)</h2>
-      <div class="drop" id="dropBase"><b>Bấm hoặc kéo thả</b> ảnh áo trơn vào đây<br><span class="note">Nhiều ảnh cùng lúc cũng được</span></div>
+      <h2>1 · Sản phẩm mẫu (mỗi ảnh = 1 màu)</h2>
+      <div class="drop" id="dropBase"><b>Bấm hoặc kéo thả</b> ảnh sản phẩm trơn vào đây<br><span class="note">Nhiều ảnh cùng lúc cũng được</span></div>
       <div id="baseList" style="margin-top:10px"></div>
       <div id="recolorBox" class="hidden" style="margin-top:10px; border:1px solid var(--clay); border-radius:10px; padding:10px">
-        <div style="font-size:13px; margin-bottom:8px">Tạo màu mới từ áo: <b id="recolorFromName"></b></div>
+        <div style="font-size:13px; margin-bottom:8px">Tạo màu mới từ sản phẩm: <b id="recolorFromName"></b></div>
         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px">
           <input type="color" id="rcColor" value="#b03024" style="width:52px; height:34px; padding:0; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer">
           <input type="text" id="rcName" placeholder="Tên màu mới — ví dụ: Đỏ">
@@ -97,7 +97,7 @@
           <button id="btnDoRecolor" class="primary small" style="flex:1">Tạo màu mới</button>
           <button id="btnCancelRecolor" class="small">Huỷ</button>
         </div>
-        <p class="note" style="margin-top:7px">Server Python dùng mô hình AI để tách đúng vùng áo rồi mới nhuộm — nền và nếp vải giữ nguyên, áo màu mới dùng chung khung in của áo gốc. Tính năng này cần mở tool qua run.bat / python app.py (địa chỉ localhost).</p>
+        <p class="note" style="margin-top:7px">Server Python dùng mô hình AI để tách đúng vùng sản phẩm rồi mới nhuộm — nền và chi tiết bề mặt giữ nguyên, sản phẩm màu mới dùng chung khung in của sản phẩm gốc. Tính năng này cần mở tool qua run.bat / python app.py (địa chỉ localhost).</p>
       </div>
     </section>
     <section>
@@ -110,11 +110,11 @@
     </section>
     <section>
       <h2>3 · Độ thật của hình in</h2>
-      <div class="ctl"><div class="lab"><span>Uốn theo nếp vải</span><output id="oWarp"></output></div>
+      <div class="ctl"><div class="lab"><span>Uốn theo bề mặt</span><output id="oWarp"></output></div>
         <input type="range" id="rWarp" min="0" max="40" step="1"></div>
-      <div class="ctl"><div class="lab"><span>Ăn sáng tối của vải</span><output id="oShade"></output></div>
+      <div class="ctl"><div class="lab"><span>Ăn sáng tối của sản phẩm</span><output id="oShade"></output></div>
         <input type="range" id="rShade" min="0" max="100" step="1"></div>
-      <div class="ctl"><div class="lab"><span>Chi tiết nếp gấp</span><output id="oDetail"></output></div>
+      <div class="ctl"><div class="lab"><span>Chi tiết bề mặt</span><output id="oDetail"></output></div>
         <input type="range" id="rDetail" min="0" max="100" step="1"></div>
       <label class="chk"><input type="checkbox" id="cTrim" checked> Tự cắt viền trong suốt thừa của file thiết kế</label>
     </section>
@@ -129,16 +129,16 @@
       <button id="btnResetAdj" class="small">Đặt lại</button>
     </section>
     <section>
-      <h2>Khung in của áo đang chọn</h2>
+      <h2>Khung in của sản phẩm đang chọn</h2>
       <div class="ctl"><div class="lab"><span>Xoay khung</span><output id="oRot"></output></div>
         <input type="range" id="rRot" min="-20" max="20" step="0.5"></div>
       <p class="note">Kéo khung trên ảnh để di chuyển · kéo các góc để phóng to/thu nhỏ · kéo núm tròn phía trên để xoay. Vùng xuất ra là hình vuông ôm theo khung in.</p>
     </section>
   </aside>
   <div id="stageWrap">
-    <div id="stageBar"><span id="stageInfo">Chưa có áo mẫu nào.</span></div>
+    <div id="stageBar"><span id="stageInfo">Chưa có sản phẩm mẫu nào.</span></div>
     <div id="stageHolder">
-      <div id="emptyStage"><b>Bắt đầu:</b> nạp ảnh áo trơn ở cột trái<br>rồi kéo khung in tới vị trí muốn in trên áo</div>
+      <div id="emptyStage"><b>Bắt đầu:</b> nạp ảnh sản phẩm trơn ở cột trái<br>rồi kéo khung in tới vị trí muốn in trên sản phẩm</div>
       <canvas id="stage" class="hidden" width="760" height="760"></canvas>
     </div>
   </div>
@@ -162,7 +162,7 @@ const S = {
 const activeBase = () => S.bases.find(b => b.id === S.activeBaseId) || null;
 const activeDesign = () => S.designs.find(d => d.id === S.activeDesignId) || null;
 
-/* ---------------- IndexedDB: lưu áo mẫu + cài đặt ---------------- */
+/* ---------------- IndexedDB: lưu sản phẩm mẫu + cài đặt ---------------- */
 const idb = {
   db: null,
   open(){ return new Promise(res => {
@@ -250,7 +250,7 @@ async function addDesigns(files){
   renderDesignGrid(); refreshStage();
 }
 
-/* ---------------- Panel: danh sách áo mẫu ---------------- */
+/* ---------------- Panel: danh sách sản phẩm mẫu ---------------- */
 function renderBaseList(){
   const el = $("#baseList"); el.innerHTML = "";
   for (const b of S.bases){
@@ -271,7 +271,9 @@ function renderBaseList(){
     const btnDye = document.createElement("button"); btnDye.className = "small"; btnDye.textContent = "Tạo màu";
     btnDye.onclick = () => openRecolor(b);
     const btnDel = document.createElement("button"); btnDel.className = "small"; btnDel.textContent = "Xoá";
+    btnDel.title = "Xoá hẳn sản phẩm mẫu này (dùng khi màu nhuộm bị lỗi)";
     btnDel.onclick = () => {
+      if (!confirm(`Xoá sản phẩm mẫu "${b.name || "chưa đặt tên"}" khỏi danh sách?`)) return;
       S.bases = S.bases.filter(x => x.id !== b.id);
       if (S.activeBaseId === b.id) S.activeBaseId = S.bases[0]?.id ?? null;
       renderBaseList(); refreshStage(); persist();
@@ -304,7 +306,7 @@ function renderDesignGrid(){
     el.appendChild(div);
   }
   $("#designCount").textContent = S.designs.length
-    ? `${S.designs.length} file thiết kế · bấm vào 1 file để xem thử trên áo · file thiết kế nạp lại mỗi lần mở tool`
+    ? `${S.designs.length} file thiết kế · bấm vào 1 file để xem thử trên sản phẩm · file thiết kế nạp lại mỗi lần mở tool`
     : "";
   updateExportBtn();
 }
@@ -317,9 +319,9 @@ function updateExportBtn(){
 function updateStageInfo(){
   const b = activeBase(), d = activeDesign();
   $("#stageInfo").innerHTML = b
-    ? `Áo đang sửa: <b>${b.name || "(chưa đặt tên)"}</b> · ${b.img.naturalWidth}×${b.img.naturalHeight}px` +
+    ? `Sản phẩm đang sửa: <b>${b.name || "(chưa đặt tên)"}</b> · ${b.img.naturalWidth}×${b.img.naturalHeight}px` +
       (d ? ` · Thiết kế đang xem: <b>${d.name}</b>` : " · Chưa chọn thiết kế nào")
-    : "Chưa có áo mẫu nào.";
+    : "Chưa có sản phẩm mẫu nào.";
 }
 </script>
 <script>
@@ -363,7 +365,7 @@ function bilinear(data, w, h, x, y, out4){
   }
 }
 
-/* Ghép 1 thiết kế lên 1 áo ở kích thước outSize. quick=true: dán phẳng (dùng khi đang kéo khung) */
+/* Ghép 1 thiết kế lên 1 sản phẩm ở kích thước outSize. quick=true: dán phẳng (dùng khi đang kéo khung) */
 function renderComposite(base, design, outSize, quick){
   const out = document.createElement("canvas"); out.width = out.height = outSize;
   const ctx = out.getContext("2d", { willReadFrequently: true });
@@ -393,7 +395,7 @@ function renderComposite(base, design, outSize, quick){
     return out;
   }
 
-  /* --- Bản đồ sáng tối của vải --- */
+  /* --- Bản đồ sáng tối của bề mặt --- */
   const baseData = ctx.getImageData(0, 0, outSize, outSize);
   const lum = new Float32Array(outSize * outSize);
   for (let i = 0, j = 0; i < lum.length; i++, j += 4)
@@ -592,7 +594,7 @@ wireDrop("#dropBase", "#fileBase", addBases);
 wireDrop("#dropDesign", "#fileDesign", addDesigns);
 </script>
 <script>
-/* ================= TỰ NHUỘM MÀU ÁO ================= */
+/* ================= TẠO MÀU SẢN PHẨM ================= */
 let recolorFromId = null;
 function openRecolor(base){
   recolorFromId = base.id;
@@ -604,14 +606,14 @@ function openRecolor(base){
 $("#btnCancelRecolor").onclick = () => { recolorFromId = null; $("#recolorBox").classList.add("hidden"); };
 $("#rcStrength").oninput = e => { $("#oRcStrength").textContent = e.target.value + "%"; };
 
-/* Nhuộm màu do server Python làm: tách áo bằng mô hình AI (rembg) rồi
-   nhuộm đúng vùng áo, nền giữ nguyên. Trang này chỉ gửi ảnh + màu lên
+/* Nhuộm màu do server Python làm: tách sản phẩm bằng mô hình AI (rembg) rồi
+   nhuộm đúng vùng sản phẩm, nền giữ nguyên. Trang này chỉ gửi ảnh + màu lên
    /api/dye và nhận ảnh đã nhuộm — xem app.py. */
 $("#btnDoRecolor").onclick = async () => {
   const src = S.bases.find(b => b.id === recolorFromId);
   if (!src) return;
   const btn = $("#btnDoRecolor");
-  btn.disabled = true; btn.textContent = "Đang tách áo + nhuộm… (lần đầu hơi lâu)";
+  btn.disabled = true; btn.textContent = "Đang tách sản phẩm + nhuộm… (lần đầu hơi lâu)";
   try {
     const res = await fetch("/api/dye", {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -700,7 +702,7 @@ $("#btnExport").onclick = async () => {
   updateExportBtn();
 };
 
-/* ================= KHỞI ĐỘNG: khôi phục áo mẫu đã lưu ================= */
+/* ================= KHỞI ĐỘNG: khôi phục sản phẩm mẫu đã lưu ================= */
 (async function init(){
   await idb.open();
   const saved = await idb.get("state");

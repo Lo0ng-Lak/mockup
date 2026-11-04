@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Tool Mockup Áo — server Python local.
+Tool Mockup Sản Phẩm — server Python local.
 
 Chạy:  python app.py   (hoặc nhấp đúp run.bat)
 Mở:    http://localhost:8765  (trình duyệt tự mở)
 
 Việc của server: TÁCH ÁO khỏi nền bằng mô hình AI rembg (U2-Net) và NHUỘM
-MÀU áo theo đúng vùng đã tách — phần mà JavaScript thuần trong trình duyệt
+MÀU sản phẩm theo đúng vùng đã tách — phần mà JavaScript thuần trong trình duyệt
 làm không đáng tin. Giao diện, khung in, ghép hình in và xuất ảnh vẫn chạy
 ở trang web như cũ; trang gọi server qua /api/dye.
 
-Mặt nạ tách áo được cache theo ảnh gốc: nhuộm 10 màu từ 1 ảnh chỉ phải
+Mặt nạ tách sản phẩm được cache theo ảnh gốc: nhuộm 10 màu từ 1 ảnh chỉ phải
 chạy mô hình 1 lần.
 """
 import base64
@@ -36,7 +36,7 @@ def get_session():
     global _session
     with _session_lock:
         if _session is None:
-            print("[tool] Đang nạp mô hình tách áo (lần đầu sẽ tải ~176MB, chờ chút)...")
+            print("[tool] Đang nạp mô hình tách sản phẩm (lần đầu sẽ tải ~176MB, chờ chút)...")
             from rembg import new_session
             _session = new_session("u2net")
             print("[tool] Mô hình đã sẵn sàng.")
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     threading.Thread(target=warmup, daemon=True).start()
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     url = f"http://localhost:{PORT}"
-    print(f"[tool] Tool Mockup Áo đang chạy tại {url}")
+    print(f"[tool] Tool Mockup Sản Phẩm đang chạy tại {url}")
     print("[tool] Để nguyên cửa sổ này khi dùng tool; đóng cửa sổ = tắt tool.")
     if not os.environ.get("MOCKUP_NO_BROWSER"):
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
