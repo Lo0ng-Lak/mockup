@@ -18,14 +18,19 @@ trình duyệt khác sẽ là một bộ lưu trữ trống mới.
 1. **Áo mẫu:** kéo ảnh áo trơn vào mục 1 — nạp nhiều ảnh cùng lúc, mỗi ảnh là
    một màu. Đặt tên màu (tên này dùng đặt tên file xuất ra) và tick
    "Xuất màu này" cho những màu muốn xuất ở lần chạy đó.
-2. **Khung in:** bấm "Đặt khung" ở từng áo, kéo khung tới vị trí in trên áo:
+2. **Tạo thêm màu từ một áo mẫu:** bấm nút "Tạo màu" ở áo gốc, chọn màu nhuộm
+   + đặt tên màu + chỉnh độ đậm, tool sinh ra áo màu mới — giữ nguyên nếp vải
+   và sáng tối của áo gốc, chỉ thay màu vải ở các vùng trung tính, và dùng
+   chung khung in của áo gốc. Nhuộm từ áo trắng/xám nhạt cho kết quả thật
+   nhất; vùng nền trắng/xám trong ảnh cũng sẽ nhuộm theo thành phông màu.
+3. **Khung in:** bấm "Đặt khung" ở từng áo, kéo khung tới vị trí in trên áo:
    kéo giữa khung để di chuyển, kéo 4 góc để phóng to/thu nhỏ, kéo núm tròn
    phía trên để xoay. Mỗi màu áo có vị trí khung riêng.
-3. **File thiết kế:** kéo hàng loạt file PNG nền trong suốt vào mục 2. Tool tự
+4. **File thiết kế:** kéo hàng loạt file PNG nền trong suốt vào mục 2. Tool tự
    cắt phần viền trong suốt thừa quanh họa tiết. Bấm vào một file để xem thử
    trên áo; có thanh trượt chỉnh phóng to/thu nhỏ và lệch vị trí riêng cho
    từng file.
-4. **Xuất ảnh:** nút cam ở góc trên. Ảnh ra chuẩn up shop: **vuông
+5. **Xuất ảnh:** nút cam ở góc trên. Ảnh ra chuẩn up shop: **vuông
    1000×1000, WebP**, tên file `ten-thiet-ke__ten-mau.webp`. Một ảnh thì tải
    thẳng, nhiều ảnh thì đóng gói thành một file `mockups-urbanhomevibe.zip`.
 

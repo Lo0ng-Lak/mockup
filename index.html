@@ -85,6 +85,20 @@
       <h2>1 · Áo mẫu (mỗi ảnh = 1 màu)</h2>
       <div class="drop" id="dropBase"><b>Bấm hoặc kéo thả</b> ảnh áo trơn vào đây<br><span class="note">Nhiều ảnh cùng lúc cũng được</span></div>
       <div id="baseList" style="margin-top:10px"></div>
+      <div id="recolorBox" class="hidden" style="margin-top:10px; border:1px solid var(--clay); border-radius:10px; padding:10px">
+        <div style="font-size:13px; margin-bottom:8px">Tạo màu mới từ áo: <b id="recolorFromName"></b></div>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px">
+          <input type="color" id="rcColor" value="#b03024" style="width:52px; height:34px; padding:0; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer">
+          <input type="text" id="rcName" placeholder="Tên màu mới — ví dụ: Đỏ">
+        </div>
+        <div class="ctl"><div class="lab"><span>Độ đậm của màu nhuộm</span><output id="oRcStrength">100%</output></div>
+          <input type="range" id="rcStrength" min="60" max="130" step="1" value="100"></div>
+        <div style="display:flex; gap:8px">
+          <button id="btnDoRecolor" class="primary small" style="flex:1">Tạo màu mới</button>
+          <button id="btnCancelRecolor" class="small">Huỷ</button>
+        </div>
+        <p class="note" style="margin-top:7px">Tool giữ nguyên nếp vải + sáng tối của áo gốc, chỉ thay màu vải ở những vùng trung tính (trắng/xám/đen). Áo màu mới dùng chung khung in của áo gốc. Nhuộm từ áo trắng/xám nhạt cho kết quả thật nhất.</p>
+      </div>
     </section>
     <section>
       <h2>2 · File thiết kế (PNG trong suốt)
@@ -254,13 +268,15 @@ function renderBaseList(){
     chk.append(cb, document.createTextNode("Xuất màu này"));
     const btnEdit = document.createElement("button"); btnEdit.className = "small"; btnEdit.textContent = "Đặt khung";
     btnEdit.onclick = () => { S.activeBaseId = b.id; renderBaseList(); refreshStage(); syncControls(); };
+    const btnDye = document.createElement("button"); btnDye.className = "small"; btnDye.textContent = "Tạo màu";
+    btnDye.onclick = () => openRecolor(b);
     const btnDel = document.createElement("button"); btnDel.className = "small"; btnDel.textContent = "Xoá";
     btnDel.onclick = () => {
       S.bases = S.bases.filter(x => x.id !== b.id);
       if (S.activeBaseId === b.id) S.activeBaseId = S.bases[0]?.id ?? null;
       renderBaseList(); refreshStage(); persist();
     };
-    row.append(chk, btnEdit, btnDel);
+    row.append(chk, btnEdit, btnDye, btnDel);
     grow.append(nameIn, row);
     div.append(thumb, grow);
     el.appendChild(div);
@@ -574,6 +590,72 @@ function wireDrop(zoneId, inputId, handler){
 }
 wireDrop("#dropBase", "#fileBase", addBases);
 wireDrop("#dropDesign", "#fileDesign", addDesigns);
+</script>
+<script>
+/* ================= TỰ NHUỘM MÀU ÁO ================= */
+let recolorFromId = null;
+function openRecolor(base){
+  recolorFromId = base.id;
+  $("#recolorFromName").textContent = base.name;
+  $("#recolorBox").classList.remove("hidden");
+  $("#rcName").value = "";
+  $("#rcName").focus();
+}
+$("#btnCancelRecolor").onclick = () => { recolorFromId = null; $("#recolorBox").classList.add("hidden"); };
+$("#rcStrength").oninput = e => { $("#oRcStrength").textContent = e.target.value + "%"; };
+
+/* Nhuộm màu: giữ nguyên độ sáng/nếp vải của từng pixel, thay màu vải ở các
+   vùng trung tính (bão hoà thấp). Vùng đã có màu sẵn (nền, vật thể) giữ nguyên. */
+function dyeImage(img, hex, strength){
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const d = imageData.data;
+  const tr = parseInt(hex.slice(1, 3), 16) * strength;
+  const tg = parseInt(hex.slice(3, 5), 16) * strength;
+  const tb = parseInt(hex.slice(5, 7), 16) * strength;
+  let sum = 0, cnt = 0;   // độ sáng tham chiếu của vùng vải trung tính
+  for (let i = 0; i < d.length; i += 16){
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    const sat = mx === 0 ? 0 : (mx - mn) / mx;
+    if (sat < 0.25){ sum += 0.299 * r + 0.587 * g + 0.114 * b; cnt++; }
+  }
+  const ref = Math.max(30, cnt ? sum / cnt : 128);
+  for (let i = 0; i < d.length; i += 4){
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+    const sat = mx === 0 ? 0 : (mx - mn) / mx;
+    const wgt = clamp((0.38 - sat) / 0.22, 0, 1);
+    if (wgt <= 0) continue;
+    const f = (0.299 * r + 0.587 * g + 0.114 * b) / ref;
+    d[i]     = r + (clamp(tr * f, 0, 255) - r) * wgt;
+    d[i + 1] = g + (clamp(tg * f, 0, 255) - g) * wgt;
+    d[i + 2] = b + (clamp(tb * f, 0, 255) - b) * wgt;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  return cv.toDataURL("image/jpeg", 0.92);
+}
+$("#btnDoRecolor").onclick = async () => {
+  const src = S.bases.find(b => b.id === recolorFromId);
+  if (!src) return;
+  const btn = $("#btnDoRecolor");
+  btn.disabled = true; btn.textContent = "Đang nhuộm…";
+  try {
+    await new Promise(r => setTimeout(r, 30));   // để nút kịp hiện trạng thái
+    const dataUrl = dyeImage(src.img, $("#rcColor").value, +$("#rcStrength").value / 100);
+    const img = await loadImg(dataUrl);
+    const nb = { id: uid(), name: $("#rcName").value.trim() || $("#rcColor").value,
+      img, dataUrl, frame: JSON.parse(JSON.stringify(src.frame)), selected: true };
+    S.bases.push(nb); S.activeBaseId = nb.id;
+    renderBaseList(); refreshStage(); syncControls(); persist();
+    recolorFromId = null; $("#recolorBox").classList.add("hidden");
+  } finally {
+    btn.disabled = false; btn.textContent = "Tạo màu mới";
+  }
+};
 </script>
 <script>
 /* ================= XUẤT ẢNH + ZIP ================= */
