@@ -20,9 +20,11 @@ trình duyệt khác sẽ là một bộ lưu trữ trống mới.
    "Xuất màu này" cho những màu muốn xuất ở lần chạy đó.
 2. **Tạo thêm màu từ một áo mẫu:** bấm nút "Tạo màu" ở áo gốc, chọn màu nhuộm
    + đặt tên màu + chỉnh độ đậm, tool sinh ra áo màu mới — giữ nguyên nếp vải
-   và sáng tối của áo gốc, chỉ thay màu vải ở các vùng trung tính, và dùng
-   chung khung in của áo gốc. Nhuộm từ áo trắng/xám nhạt cho kết quả thật
-   nhất; vùng nền trắng/xám trong ảnh cũng sẽ nhuộm theo thành phông màu.
+   và sáng tối của áo gốc, và dùng chung khung in của áo gốc. Tool tự nhận
+   diện vùng áo để nhuộm: áo tối/màu trên nền sáng tương phản thì nền được
+   giữ nguyên; áo sáng trên nền xám/trắng (tông áo và nền quá gần nhau, máy
+   không tách reliably được) thì tool nhuộm đều cả khung — áo lên màu chuẩn,
+   nền thành phông cùng tông màu.
 3. **Khung in:** bấm "Đặt khung" ở từng áo, kéo khung tới vị trí in trên áo:
    kéo giữa khung để di chuyển, kéo 4 góc để phóng to/thu nhỏ, kéo núm tròn
    phía trên để xoay. Mỗi màu áo có vị trí khung riêng.

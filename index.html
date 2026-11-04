@@ -97,7 +97,7 @@
           <button id="btnDoRecolor" class="primary small" style="flex:1">Tạo màu mới</button>
           <button id="btnCancelRecolor" class="small">Huỷ</button>
         </div>
-        <p class="note" style="margin-top:7px">Tool giữ nguyên nếp vải + sáng tối của áo gốc, chỉ thay màu vải ở những vùng trung tính (trắng/xám/đen). Áo màu mới dùng chung khung in của áo gốc. Nhuộm từ áo trắng/xám nhạt cho kết quả thật nhất.</p>
+        <p class="note" style="margin-top:7px">Tool tự nhận diện vùng áo để nhuộm — nền giữ nguyên, nếp vải + sáng tối của áo được giữ lại, áo màu mới dùng chung khung in của áo gốc. Ảnh áo chụp thẳng, nền trơn là nhận diện chuẩn nhất.</p>
       </div>
     </section>
     <section>
@@ -604,36 +604,132 @@ function openRecolor(base){
 $("#btnCancelRecolor").onclick = () => { recolorFromId = null; $("#recolorBox").classList.add("hidden"); };
 $("#rcStrength").oninput = e => { $("#oRcStrength").textContent = e.target.value + "%"; };
 
-/* Nhuộm màu: giữ nguyên độ sáng/nếp vải của từng pixel, thay màu vải ở các
-   vùng trung tính (bão hoà thấp). Vùng đã có màu sẵn (nền, vật thể) giữ nguyên. */
+/* Nhuộm màu v2: tự nhận diện VÙNG ÁO rồi chỉ nhuộm vùng đó, nền giữ nguyên.
+   Cách nhận diện: từ điểm giữa ngực áo, lan ra các pixel trung tính kề nhau
+   (màu thay đổi từ từ theo nếp vải), dừng ở đường biên áo (màu nhảy vọt) và
+   ở các pixel giống màu nền (lấy mẫu từ 4 góc ảnh). Độ sáng để nhuộm được
+   chuẩn hoá theo vùng áo (điểm sáng 92% của áo = màu đầy đủ), nên áo đen
+   nhuộm vẫn lên màu thay vì bị độ sáng của nền trắng "cướp" hết màu. */
 function dyeImage(img, hex, strength){
-  const w = img.naturalWidth, h = img.naturalHeight;
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d", { willReadFrequently: true });
   ctx.drawImage(img, 0, 0);
-  const imageData = ctx.getImageData(0, 0, w, h);
+  const imageData = ctx.getImageData(0, 0, W, H);
   const d = imageData.data;
   const tr = parseInt(hex.slice(1, 3), 16) * strength;
   const tg = parseInt(hex.slice(3, 5), 16) * strength;
   const tb = parseInt(hex.slice(5, 7), 16) * strength;
-  let sum = 0, cnt = 0;   // độ sáng tham chiếu của vùng vải trung tính
-  for (let i = 0; i < d.length; i += 16){
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-    const sat = mx === 0 ? 0 : (mx - mn) / mx;
-    if (sat < 0.25){ sum += 0.299 * r + 0.587 * g + 0.114 * b; cnt++; }
+
+  /* --- Mặt nạ vùng áo, tính trên lưới thu nhỏ cho nhanh --- */
+  const mw = Math.min(W, 640), mh = Math.max(2, Math.round(mw * H / W));
+  const mcv = document.createElement("canvas"); mcv.width = mw; mcv.height = mh;
+  const mctx = mcv.getContext("2d", { willReadFrequently: true });
+  mctx.drawImage(img, 0, 0, mw, mh);
+  const md = mctx.getImageData(0, 0, mw, mh).data;
+  const mpx = i => [md[i], md[i + 1], md[i + 2]];
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const satOf = p => { const mx = Math.max(...p), mn = Math.min(...p); return mx === 0 ? 0 : (mx - mn) / mx; };
+  // Màu nền: trung vị 4 góc
+  const corners = [[0, 0], [mw - 1, 0], [0, mh - 1], [mw - 1, mh - 1]].map(([x, y]) => mpx((y * mw + x) * 4));
+  const bg = [0, 1, 2].map(c => corners.map(p => p[c]).sort((a, b) => a - b)[1]);
+  // Hàm lan vùng dùng chung
+  function grow(seeds, stepCap, ok){
+    const m = new Float32Array(mw * mh);
+    const stack = [];
+    for (const s of seeds){ if (!m[s]){ m[s] = 1; stack.push(s); } }
+    let n = stack.length;
+    while (stack.length){
+      const cur = stack.pop();
+      const cx = cur % mw, cy = (cur / mw) | 0;
+      const cp = mpx(cur * 4);
+      for (const [nx, ny] of [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]]){
+        if (nx < 0 || ny < 0 || nx >= mw || ny >= mh) continue;
+        const ni = ny * mw + nx;
+        if (m[ni]) continue;
+        const np = mpx(ni * 4);
+        if (satOf(np) > 0.34) continue;               // đã có màu riêng → không lan
+        if (dist(np, cp) > stepCap) continue;         // màu nhảy vọt → biên
+        if (!ok(np)) continue;
+        m[ni] = 1; stack.push(ni); n++;
+      }
+    }
+    return { m, frac: n / (mw * mh) };
   }
-  const ref = Math.max(30, cnt ? sum / cnt : 128);
-  for (let i = 0; i < d.length; i += 4){
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-    const sat = mx === 0 ? 0 : (mx - mn) / mx;
-    const wgt = clamp((0.38 - sat) / 0.22, 0, 1);
-    if (wgt <= 0) continue;
-    const f = (0.299 * r + 0.587 * g + 0.114 * b) / ref;
-    d[i]     = r + (clamp(tr * f, 0, 255) - r) * wgt;
-    d[i + 1] = g + (clamp(tg * f, 0, 255) - g) * wgt;
-    d[i + 2] = b + (clamp(tb * f, 0, 255) - b) * wgt;
+  // Vùng áo: lan từ điểm giữa ngực
+  const sx = Math.floor(mw / 2), sy = Math.floor(mh * 0.45);
+  const seed = mpx((sy * mw + sx) * 4);
+  const gRaw = grow([sy * mw + sx], 30, np => dist(np, seed) <= 120);
+  // Vùng nền: lan từ toàn bộ viền ảnh (bước nhảy nhỏ — nền liền mạch, và bóng
+  // đổ dưới áo tạo bậc màu chặn không cho lan vào áo)
+  const borderSeeds = [];
+  for (let x = 0; x < mw; x++){ borderSeeds.push(x, (mh - 1) * mw + x); }
+  for (let y = 0; y < mh; y++){ borderSeeds.push(y * mw, y * mw + mw - 1); }
+  const b = grow(borderSeeds, 14, np => dist(np, bg) <= 64);
+  // Trừ nền khỏi vùng áo — nhưng chỉ tin phép trừ này khi nó không "ăn" quá
+  // nhiều vào áo. Áo sáng trên nền xám có tông gần nền: vùng nền lan theo dốc
+  // sáng có thể leo vào áo và ăn mất hơn nửa — khi đó thà nhuộm toàn bộ vùng
+  // trung tính (áo lên màu đúng, nền thành phông màu) còn hơn nhuộm lem nhem.
+  let mask = gRaw.m, maskFrac = gRaw.frac;
+  if (b.frac <= 0.9){
+    let kept = 0;
+    const g2 = new Float32Array(gRaw.m);
+    for (let i = 0; i < g2.length; i++){ if (b.m[i]) g2[i] = 0; if (g2[i]) kept++; }
+    const keptFrac = kept / (mw * mh);
+    const eaten = gRaw.frac > 0 ? (gRaw.frac - keptFrac) / gRaw.frac : 0;
+    if (keptFrac >= 0.03 && eaten <= 0.35){
+      // Lấp các lỗ nhỏ trong vùng áo (bóng cổ áo, nếp tối bị trừ nhầm)
+      for (let pass = 0; pass < 2; pass++){
+        const add = [];
+        for (let y = 1; y < mh - 1; y++) for (let x = 1; x < mw - 1; x++){
+          const i = y * mw + x;
+          if (g2[i]) continue;
+          let n = 0;
+          for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]])
+            if (g2[i + dy * mw + dx]) n++;
+          if (n >= 6) add.push(i);
+        }
+        for (const i of add){ g2[i] = 1; kept++; }
+      }
+      mask = g2; maskFrac = kept / (mw * mh);
+    } else {
+      // Trừ nền xong gần như không còn gì, hoặc phép trừ ăn quá nhiều vào áo
+      // → nhuộm toàn bộ vùng trung tính cho đều
+      for (let i = 0; i < mw * mh; i++) mask[i] = satOf(mpx(i * 4)) < 0.3 ? 1 : 0;
+      maskFrac = 0.5;   // chế độ nhuộm toàn vùng trung tính
+    }
+  }
+  if (maskFrac < 0.03 || maskFrac > 0.97){
+    for (let i = 0; i < mw * mh; i++) mask[i] = satOf(mpx(i * 4)) < 0.3 ? 1 : 0;
+  }
+  const soft = boxBlur(mask, mw, mh, Math.max(2, Math.round(mw * 0.012)));
+
+  /* --- Độ sáng tham chiếu: điểm sáng 92% CỦA VÙNG ÁO --- */
+  const lums = [];
+  for (let y = 0; y < mh; y += 2) for (let x = 0; x < mw; x += 2){
+    if (soft[y * mw + x] > 0.5){
+      const p = mpx((y * mw + x) * 4);
+      lums.push(0.299 * p[0] + 0.587 * p[1] + 0.114 * p[2]);
+    }
+  }
+  lums.sort((a, b) => a - b);
+  const ref = Math.max(25, lums.length ? lums[Math.floor(lums.length * 0.92)] : 160);
+
+  /* --- Nhuộm ở độ phân giải đầy đủ --- */
+  for (let y = 0; y < H; y++){
+    const my = Math.min(mh - 1, (y * mh / H) | 0);
+    for (let x = 0; x < W; x++){
+      const mx = Math.min(mw - 1, (x * mw / W) | 0);
+      const wgt = soft[my * mw + mx];
+      if (wgt <= 0.01) continue;
+      const i = (y * W + x) * 4;
+      const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      let f = clamp(lum / ref, 0, 1.12);
+      f = 0.10 + 0.90 * f;                 // sàn nhẹ để vùng tối của áo vẫn đọc được màu
+      d[i]     = d[i]     + (clamp(tr * f, 0, 255) - d[i])     * wgt;
+      d[i + 1] = d[i + 1] + (clamp(tg * f, 0, 255) - d[i + 1]) * wgt;
+      d[i + 2] = d[i + 2] + (clamp(tb * f, 0, 255) - d[i + 2]) * wgt;
+    }
   }
   ctx.putImageData(imageData, 0, 0);
   return cv.toDataURL("image/jpeg", 0.92);
