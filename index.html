@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tool Mockup Áo — Urbanhomevibe</title>
+<style>
+  :root{
+    --bg:#17181c; --panel:#1f2126; --panel2:#26282f; --line:#34363f;
+    --ink:#eceef2; --dim:#9aa0ad; --clay:#e0703c; --clay2:#c85a28;
+    --ok:#3fbf72; --radius:10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{background:var(--bg); color:var(--ink); font:14px/1.45 "Segoe UI", system-ui, sans-serif; display:flex; flex-direction:column; overflow:hidden}
+  button{font:inherit; cursor:pointer; border:1px solid var(--line); background:var(--panel2); color:var(--ink); border-radius:8px; padding:7px 12px}
+  button:hover{border-color:var(--clay)}
+  button.primary{background:var(--clay); border-color:var(--clay); color:#fff; font-weight:600}
+  button.primary:hover{background:var(--clay2)}
+  button:disabled{opacity:.45; cursor:default}
+  button.small{padding:3px 8px; font-size:12px}
+  input[type="text"]{background:#141519; border:1px solid var(--line); color:var(--ink); border-radius:6px; padding:5px 8px; width:100%; font:inherit; font-size:13px}
+  input[type="range"]{width:100%; accent-color:var(--clay)}
+  input[type="checkbox"]{accent-color:var(--clay); width:16px; height:16px}
+  label.chk{display:flex; gap:8px; align-items:center; cursor:pointer}
+
+  header{display:flex; align-items:center; gap:14px; padding:10px 16px; background:var(--panel); border-bottom:1px solid var(--line); flex:0 0 auto}
+  header h1{font-size:16px; font-weight:700; letter-spacing:.2px}
+  header h1 span{color:var(--clay)}
+  header .hint{color:var(--dim); font-size:12.5px}
+  header .sp{flex:1}
+  #progress{font-size:13px; color:var(--ok); min-width:180px; text-align:right}
+
+  main{flex:1; display:flex; min-height:0}
+  aside{width:308px; flex:0 0 308px; overflow-y:auto; background:var(--panel); border-right:1px solid var(--line); padding:14px; display:flex; flex-direction:column; gap:18px}
+  aside section h2{font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center}
+  aside section h2 button{font-size:11px; padding:3px 8px; text-transform:none; letter-spacing:0}
+  .drop{border:1.5px dashed var(--line); border-radius:var(--radius); padding:14px 10px; text-align:center; color:var(--dim); font-size:13px; cursor:pointer; transition:.15s}
+  .drop:hover,.drop.over{border-color:var(--clay); color:var(--ink); background:#ffffff08}
+  .drop b{color:var(--clay)}
+
+  .baseItem{display:flex; gap:9px; padding:8px; border:1px solid var(--line); border-radius:var(--radius); margin-bottom:8px; background:var(--panel2); align-items:flex-start}
+  .baseItem.active{border-color:var(--clay)}
+  .baseItem img{width:52px; height:52px; object-fit:cover; border-radius:6px; background:#000; flex:0 0 52px}
+  .baseItem .grow{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px}
+  .baseItem .row{display:flex; gap:6px; align-items:center}
+  .baseItem .row .small{flex:0 0 auto}
+  .baseItem label.chk{font-size:12.5px; color:var(--dim)}
+
+  .designGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:7px}
+  .designItem{position:relative; border:2px solid var(--line); border-radius:8px; overflow:hidden; cursor:pointer; aspect-ratio:1;
+    background:repeating-conic-gradient(#2c2e35 0% 25%, #22242a 0% 50%) 0 0/14px 14px}
+  .designItem.active{border-color:var(--clay)}
+  .designItem img{width:100%; height:100%; object-fit:contain; display:block}
+  .designItem .x{position:absolute; top:2px; right:2px; width:18px; height:18px; padding:0; border-radius:50%; font-size:11px; line-height:1; background:#000a; border:none; color:#fff}
+  .designItem .nm{position:absolute; left:0; right:0; bottom:0; font-size:9.5px; background:#000a; color:#ddd; padding:2px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+  .ctl{margin-bottom:11px}
+  .ctl .lab{display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px}
+  .ctl .lab output{color:var(--clay); font-weight:600}
+  .note{font-size:12px; color:var(--dim)}
+
+  #stageWrap{flex:1; display:flex; flex-direction:column; min-width:0; background:
+    repeating-conic-gradient(#1a1b1f 0% 25%, #17181c 0% 50%) 0 0/22px 22px}
+  #stageBar{display:flex; gap:10px; align-items:center; padding:9px 14px; background:var(--panel); border-bottom:1px solid var(--line); font-size:13px; color:var(--dim); flex-wrap:wrap}
+  #stageBar b{color:var(--ink)}
+  #stageHolder{flex:1; display:flex; align-items:center; justify-content:center; padding:18px; min-height:0}
+  #stage{max-width:100%; max-height:100%; border-radius:6px; box-shadow:0 8px 40px #000c; touch-action:none}
+  #emptyStage{color:var(--dim); text-align:center; font-size:15px; line-height:1.9}
+  #emptyStage b{color:var(--clay); font-size:17px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Tool Mockup Áo <span>· Urbanhomevibe</span></h1>
+  <div class="hint">Nạp áo trơn → đặt khung in → thả hàng loạt file thiết kế → xuất ảnh chuẩn shop 1000×1000 WebP</div>
+  <div class="sp"></div>
+  <div id="progress"></div>
+  <button id="btnExport" class="primary" disabled>Xuất ảnh đã chọn</button>
+</header>
+<main>
+  <aside>
+    <section>
+      <h2>1 · Áo mẫu (mỗi ảnh = 1 màu)</h2>
+      <div class="drop" id="dropBase"><b>Bấm hoặc kéo thả</b> ảnh áo trơn vào đây<br><span class="note">Nhiều ảnh cùng lúc cũng được</span></div>
+      <div id="baseList" style="margin-top:10px"></div>
+    </section>
+    <section>
+      <h2>2 · File thiết kế (PNG trong suốt)
+        <button id="btnClearDesigns" class="small">Xoá hết</button>
+      </h2>
+      <div class="drop" id="dropDesign"><b>Bấm hoặc kéo thả</b> hàng loạt file PNG vào đây</div>
+      <div class="designGrid" id="designGrid" style="margin-top:10px"></div>
+      <p class="note" id="designCount"></p>
+    </section>
+    <section>
+      <h2>3 · Độ thật của hình in</h2>
+      <div class="ctl"><div class="lab"><span>Uốn theo nếp vải</span><output id="oWarp"></output></div>
+        <input type="range" id="rWarp" min="0" max="40" step="1"></div>
+      <div class="ctl"><div class="lab"><span>Ăn sáng tối của vải</span><output id="oShade"></output></div>
+        <input type="range" id="rShade" min="0" max="100" step="1"></div>
+      <div class="ctl"><div class="lab"><span>Chi tiết nếp gấp</span><output id="oDetail"></output></div>
+        <input type="range" id="rDetail" min="0" max="100" step="1"></div>
+      <label class="chk"><input type="checkbox" id="cTrim" checked> Tự cắt viền trong suốt thừa của file thiết kế</label>
+    </section>
+    <section id="adjSection" class="hidden">
+      <h2>Chỉnh riêng thiết kế đang chọn</h2>
+      <div class="ctl"><div class="lab"><span>Phóng to / thu nhỏ</span><output id="oDScale"></output></div>
+        <input type="range" id="rDScale" min="40" max="200" step="1"></div>
+      <div class="ctl"><div class="lab"><span>Lệch trái / phải</span><output id="oDDx"></output></div>
+        <input type="range" id="rDDx" min="-40" max="40" step="0.5"></div>
+      <div class="ctl"><div class="lab"><span>Lệch lên / xuống</span><output id="oDDy"></output></div>
+        <input type="range" id="rDDy" min="-40" max="40" step="0.5"></div>
+      <button id="btnResetAdj" class="small">Đặt lại</button>
+    </section>
+    <section>
+      <h2>Khung in của áo đang chọn</h2>
+      <div class="ctl"><div class="lab"><span>Xoay khung</span><output id="oRot"></output></div>
+        <input type="range" id="rRot" min="-20" max="20" step="0.5"></div>
+      <p class="note">Kéo khung trên ảnh để di chuyển · kéo các góc để phóng to/thu nhỏ · kéo núm tròn phía trên để xoay. Vùng xuất ra là hình vuông ôm theo khung in.</p>
+    </section>
+  </aside>
+  <div id="stageWrap">
+    <div id="stageBar"><span id="stageInfo">Chưa có áo mẫu nào.</span></div>
+    <div id="stageHolder">
+      <div id="emptyStage"><b>Bắt đầu:</b> nạp ảnh áo trơn ở cột trái<br>rồi kéo khung in tới vị trí muốn in trên áo</div>
+      <canvas id="stage" class="hidden" width="760" height="760"></canvas>
+    </div>
+  </div>
+</main>
+<input type="file" id="fileBase" accept="image/*" multiple class="hidden">
+<input type="file" id="fileDesign" accept="image/png,image/*" multiple class="hidden">
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => v<a?a : v>b?b : v;
+let _uid = 1; const uid = () => _uid++;
+
+/* ---------------- State ---------------- */
+const S = {
+  bases: [],     // {id,name,img,dataUrl,frame:{cx,cy,w,h,rot},selected}
+  designs: [],   // {id,name,img,trim:{x,y,w,h},adj:{scale,dx,dy}}
+  activeBaseId: null,
+  activeDesignId: null,
+  settings: { warp: 16, shade: 0.85, detail: 0.6, trim: true },
+};
+const activeBase = () => S.bases.find(b => b.id === S.activeBaseId) || null;
+const activeDesign = () => S.designs.find(d => d.id === S.activeDesignId) || null;
+
+/* ---------------- IndexedDB: lưu áo mẫu + cài đặt ---------------- */
+const idb = {
+  db: null,
+  open(){ return new Promise(res => {
+    const rq = indexedDB.open("mockup-tool", 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore("kv");
+    rq.onsuccess = () => { idb.db = rq.result; res(); };
+    rq.onerror = () => res();
+  });},
+  set(k, v){ return new Promise(res => {
+    if(!idb.db) return res();
+    const tx = idb.db.transaction("kv", "readwrite");
+    tx.objectStore("kv").put(v, k);
+    tx.oncomplete = () => res(); tx.onerror = () => res();
+  });},
+  get(k){ return new Promise(res => {
+    if(!idb.db) return res(null);
+    const rq = idb.db.transaction("kv").objectStore("kv").get(k);
+    rq.onsuccess = () => res(rq.result ?? null); rq.onerror = () => res(null);
+  });},
+};
+let saveTimer = null;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    idb.set("state", {
+      settings: S.settings,
+      bases: S.bases.map(b => ({ name: b.name, dataUrl: b.dataUrl, frame: b.frame, selected: b.selected })),
+    });
+  }, 350);
+}
+
+/* ---------------- Nạp ảnh ---------------- */
+function fileToDataUrl(file){ return new Promise((res, rej) => {
+  const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file);
+});}
+function loadImg(src){ return new Promise((res, rej) => {
+  const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = src;
+});}
+function stripExt(name){ return name.replace(/\.[a-z0-9]+$/i, ""); }
+
+/* Quét viền trong suốt của file thiết kế → hộp họa tiết thật */
+function computeTrim(img){
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++){
+    const row = y * w * 4;
+    for (let x = 0; x < w; x++){
+      if (data[row + x * 4 + 3] > 8){
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return { x: 0, y: 0, w, h };
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
+}
+
+async function addBases(files){
+  for (const f of files){
+    if (!f.type.startsWith("image/")) continue;
+    const dataUrl = await fileToDataUrl(f);
+    const img = await loadImg(dataUrl);
+    const m = Math.min(img.naturalWidth, img.naturalHeight);
+    S.bases.push({
+      id: uid(), name: stripExt(f.name), img, dataUrl, selected: true,
+      frame: { cx: img.naturalWidth / 2, cy: img.naturalHeight * 0.42, w: m * 0.42, h: m * 0.52, rot: 0 },
+    });
+    if (S.activeBaseId === null) S.activeBaseId = S.bases[S.bases.length - 1].id;
+  }
+  renderBaseList(); refreshStage(); persist();
+}
+async function addDesigns(files){
+  for (const f of files){
+    if (!f.type.startsWith("image/")) continue;
+    const dataUrl = await fileToDataUrl(f);
+    const img = await loadImg(dataUrl);
+    S.designs.push({ id: uid(), name: stripExt(f.name), img, trim: computeTrim(img),
+                     adj: { scale: 1, dx: 0, dy: 0 } });
+    if (S.activeDesignId === null) S.activeDesignId = S.designs[S.designs.length - 1].id;
+  }
+  renderDesignGrid(); refreshStage();
+}
+
+/* ---------------- Panel: danh sách áo mẫu ---------------- */
+function renderBaseList(){
+  const el = $("#baseList"); el.innerHTML = "";
+  for (const b of S.bases){
+    const div = document.createElement("div");
+    div.className = "baseItem" + (b.id === S.activeBaseId ? " active" : "");
+    const thumb = document.createElement("img"); thumb.src = b.dataUrl; thumb.alt = "";
+    const grow = document.createElement("div"); grow.className = "grow";
+    const nameIn = document.createElement("input"); nameIn.type = "text"; nameIn.value = b.name;
+    nameIn.title = "Tên màu — dùng đặt tên file xuất ra";
+    nameIn.oninput = () => { b.name = nameIn.value; persist(); updateStageInfo(); };
+    const row = document.createElement("div"); row.className = "row";
+    const chk = document.createElement("label"); chk.className = "chk";
+    const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = b.selected;
+    cb.onchange = () => { b.selected = cb.checked; updateExportBtn(); persist(); };
+    chk.append(cb, document.createTextNode("Xuất màu này"));
+    const btnEdit = document.createElement("button"); btnEdit.className = "small"; btnEdit.textContent = "Đặt khung";
+    btnEdit.onclick = () => { S.activeBaseId = b.id; renderBaseList(); refreshStage(); syncControls(); };
+    const btnDel = document.createElement("button"); btnDel.className = "small"; btnDel.textContent = "Xoá";
+    btnDel.onclick = () => {
+      S.bases = S.bases.filter(x => x.id !== b.id);
+      if (S.activeBaseId === b.id) S.activeBaseId = S.bases[0]?.id ?? null;
+      renderBaseList(); refreshStage(); persist();
+    };
+    row.append(chk, btnEdit, btnDel);
+    grow.append(nameIn, row);
+    div.append(thumb, grow);
+    el.appendChild(div);
+  }
+  updateExportBtn(); updateStageInfo();
+}
+
+/* ---------------- Panel: lưới file thiết kế ---------------- */
+function renderDesignGrid(){
+  const el = $("#designGrid"); el.innerHTML = "";
+  for (const d of S.designs){
+    const div = document.createElement("div");
+    div.className = "designItem" + (d.id === S.activeDesignId ? " active" : "");
+    div.title = d.name;
+    const img = document.createElement("img"); img.src = d.img.src; img.alt = "";
+    const x = document.createElement("button"); x.className = "x"; x.textContent = "×";
+    x.onclick = ev => { ev.stopPropagation();
+      S.designs = S.designs.filter(v => v.id !== d.id);
+      if (S.activeDesignId === d.id) S.activeDesignId = S.designs[0]?.id ?? null;
+      renderDesignGrid(); refreshStage();
+    };
+    const nm = document.createElement("div"); nm.className = "nm"; nm.textContent = d.name;
+    div.append(img, x, nm);
+    div.onclick = () => { S.activeDesignId = d.id; renderDesignGrid(); refreshStage(); syncControls(); };
+    el.appendChild(div);
+  }
+  $("#designCount").textContent = S.designs.length
+    ? `${S.designs.length} file thiết kế · bấm vào 1 file để xem thử trên áo · file thiết kế nạp lại mỗi lần mở tool`
+    : "";
+  updateExportBtn();
+}
+function updateExportBtn(){
+  const n = S.bases.filter(b => b.selected).length * S.designs.length;
+  const btn = $("#btnExport");
+  btn.disabled = n === 0;
+  btn.textContent = n ? `Xuất ${n} ảnh đã chọn` : "Xuất ảnh đã chọn";
+}
+function updateStageInfo(){
+  const b = activeBase(), d = activeDesign();
+  $("#stageInfo").innerHTML = b
+    ? `Áo đang sửa: <b>${b.name || "(chưa đặt tên)"}</b> · ${b.img.naturalWidth}×${b.img.naturalHeight}px` +
+      (d ? ` · Thiết kế đang xem: <b>${d.name}</b>` : " · Chưa chọn thiết kế nào")
+    : "Chưa có áo mẫu nào.";
+}
+</script>
+<script>
+/* ================= ENGINE GHÉP HÌNH ================= */
+/* Vùng xuất ra: hình vuông lớn nhất ôm theo tâm khung in */
+function computeCrop(base){
+  const W = base.img.naturalWidth, H = base.img.naturalHeight;
+  const size = Math.min(W, H);
+  const x = clamp(base.frame.cx - size / 2, 0, W - size);
+  const y = clamp(base.frame.cy - size / 2, 0, H - size);
+  return { x, y, size };
+}
+function boxBlur(src, w, h, r){
+  const tmp = new Float32Array(src.length), out = new Float32Array(src.length);
+  for (let y = 0; y < h; y++){
+    let acc = 0; const row = y * w;
+    for (let x = -r; x <= r; x++) acc += src[row + clamp(x, 0, w - 1)];
+    for (let x = 0; x < w; x++){
+      tmp[row + x] = acc / (2 * r + 1);
+      acc += src[row + clamp(x + r + 1, 0, w - 1)] - src[row + clamp(x - r, 0, w - 1)];
+    }
+  }
+  for (let x = 0; x < w; x++){
+    let acc = 0;
+    for (let y = -r; y <= r; y++) acc += tmp[clamp(y, 0, h - 1) * w + x];
+    for (let y = 0; y < h; y++){
+      out[y * w + x] = acc / (2 * r + 1);
+      acc += tmp[clamp(y + r + 1, 0, h - 1) * w + x] - tmp[clamp(y - r, 0, h - 1) * w + x];
+    }
+  }
+  return out;
+}
+function bilinear(data, w, h, x, y, out4){
+  x = clamp(x, 0, w - 1.001); y = clamp(y, 0, h - 1.001);
+  const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0;
+  const i00 = (y0 * w + x0) * 4, i10 = i00 + 4, i01 = i00 + w * 4, i11 = i01 + 4;
+  for (let c = 0; c < 4; c++){
+    const top = data[i00 + c] * (1 - fx) + data[i10 + c] * fx;
+    const bot = data[i01 + c] * (1 - fx) + data[i11 + c] * fx;
+    out4[c] = top * (1 - fy) + bot * fy;
+  }
+}
+
+/* Ghép 1 thiết kế lên 1 áo ở kích thước outSize. quick=true: dán phẳng (dùng khi đang kéo khung) */
+function renderComposite(base, design, outSize, quick){
+  const out = document.createElement("canvas"); out.width = out.height = outSize;
+  const ctx = out.getContext("2d", { willReadFrequently: true });
+  const crop = computeCrop(base);
+  ctx.drawImage(base.img, crop.x, crop.y, crop.size, crop.size, 0, 0, outSize, outSize);
+  if (!design) return out;
+
+  const sc = outSize / crop.size;                       // px ảnh gốc → px xuất
+  const fcx = (base.frame.cx - crop.x) * sc, fcy = (base.frame.cy - crop.y) * sc;
+  const fw = base.frame.w * sc, fh = base.frame.h * sc;
+  const rot = base.frame.rot * Math.PI / 180;
+
+  /* Thiết kế vừa khung (contain) trong không gian khung chưa xoay */
+  const fcv = document.createElement("canvas");
+  fcv.width = Math.max(2, Math.round(fw)); fcv.height = Math.max(2, Math.round(fh));
+  const fctx = fcv.getContext("2d", { willReadFrequently: true });
+  const tr = S.settings.trim ? design.trim : { x: 0, y: 0, w: design.img.naturalWidth, h: design.img.naturalHeight };
+  const fit = Math.min(fcv.width / tr.w, fcv.height / tr.h) * design.adj.scale;
+  const dw = tr.w * fit, dh = tr.h * fit;
+  const dx0 = (fcv.width - dw) / 2 + design.adj.dx * fcv.width;
+  const dy0 = (fcv.height - dh) / 2 + design.adj.dy * fcv.height;
+  fctx.drawImage(design.img, tr.x, tr.y, tr.w, tr.h, dx0, dy0, dw, dh);
+
+  if (quick){
+    ctx.save(); ctx.translate(fcx, fcy); ctx.rotate(rot);
+    ctx.drawImage(fcv, -fw / 2, -fh / 2, fw, fh); ctx.restore();
+    return out;
+  }
+
+  /* --- Bản đồ sáng tối của vải --- */
+  const baseData = ctx.getImageData(0, 0, outSize, outSize);
+  const lum = new Float32Array(outSize * outSize);
+  for (let i = 0, j = 0; i < lum.length; i++, j += 4)
+    lum[i] = baseData.data[j] * 0.299 + baseData.data[j + 1] * 0.587 + baseData.data[j + 2] * 0.114;
+  const H = boxBlur(lum, outSize, outSize, Math.max(2, Math.round(outSize * 0.014)));
+  let meanH = 0, cnt = 0;   // sáng trung bình quanh vùng in để chuẩn hoá tông
+  const bx0 = clamp(Math.round(fcx - fw / 2), 0, outSize - 1), bx1 = clamp(Math.round(fcx + fw / 2), 0, outSize - 1);
+  const by0 = clamp(Math.round(fcy - fh / 2), 0, outSize - 1), by1 = clamp(Math.round(fcy + fh / 2), 0, outSize - 1);
+  for (let y = by0; y <= by1; y += 3) for (let x = bx0; x <= bx1; x += 3){ meanH += H[y * outSize + x]; cnt++; }
+  meanH = Math.max(20, meanH / Math.max(1, cnt));
+
+  const src = fctx.getImageData(0, 0, fcv.width, fcv.height);
+  const res = fctx.createImageData(fcv.width, fcv.height);
+  const warpK = (S.settings.warp / 255) * 6 * (outSize / 1000);
+  const shadeAmt = S.settings.shade, detailAmt = S.settings.detail;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  const px4 = [0, 0, 0, 0];
+  for (let py = 0; py < fcv.height; py++){
+    for (let px = 0; px < fcv.width; px++){
+      const lx = px - fcv.width / 2 + 0.5, ly = py - fcv.height / 2 + 0.5;
+      const ox = clamp(Math.round(fcx + lx * cos - ly * sin), 1, outSize - 2);
+      const oy = clamp(Math.round(fcy + lx * sin + ly * cos), 1, outSize - 2);
+      const oi = oy * outSize + ox;
+      const gx = H[oi + 1] - H[oi - 1];
+      const gy = H[oi + outSize] - H[oi - outSize];
+      bilinear(src.data, fcv.width, fcv.height, px - gx * warpK, py - gy * warpK, px4);
+      const tone = clamp(H[oi] / meanH, 0.5, 1.35);
+      const det = 1 + ((lum[oi] - H[oi]) / 255) * detailAmt * 2.0;
+      const sf = (1 - shadeAmt) + shadeAmt * tone * det;
+      const ri = (py * fcv.width + px) * 4;
+      res.data[ri]     = clamp(px4[0] * sf, 0, 255);
+      res.data[ri + 1] = clamp(px4[1] * sf, 0, 255);
+      res.data[ri + 2] = clamp(px4[2] * sf, 0, 255);
+      res.data[ri + 3] = px4[3];
+    }
+  }
+  const tmp = document.createElement("canvas"); tmp.width = fcv.width; tmp.height = fcv.height;
+  tmp.getContext("2d").putImageData(res, 0, 0);
+  ctx.save(); ctx.translate(fcx, fcy); ctx.rotate(rot);
+  ctx.drawImage(tmp, -fw / 2, -fh / 2, fw, fh); ctx.restore();
+  return out;
+}
+</script>
+<script>
+/* ================= SÂN KHẤU: VẼ + KÉO KHUNG ================= */
+const stage = $("#stage"), sctx = stage.getContext("2d");
+let stageQuick = false, renderTimer = null;
+
+function frameCanvas(base, out){
+  const crop = computeCrop(base);
+  const sc = out / crop.size;
+  return { crop, sc,
+    fcx: (base.frame.cx - crop.x) * sc, fcy: (base.frame.cy - crop.y) * sc,
+    fw: base.frame.w * sc, fh: base.frame.h * sc, rot: base.frame.rot * Math.PI / 180 };
+}
+function refreshStage(){
+  const base = activeBase();
+  const has = !!base;
+  stage.classList.toggle("hidden", !has);
+  $("#emptyStage").classList.toggle("hidden", has);
+  updateStageInfo();
+  if (!has) return;
+  const out = stage.width;
+  const comp = renderComposite(base, activeDesign(), out, stageQuick);
+  sctx.clearRect(0, 0, out, out);
+  sctx.drawImage(comp, 0, 0);
+  drawFrameOverlay(base, out);
+}
+function scheduleFullRender(){
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => { stageQuick = false; refreshStage(); }, 160);
+}
+function drawFrameOverlay(base, out){
+  const { fcx, fcy, fw, fh, rot } = frameCanvas(base, out);
+  sctx.save(); sctx.translate(fcx, fcy); sctx.rotate(rot);
+  sctx.strokeStyle = "#e0703c"; sctx.lineWidth = 2; sctx.setLineDash([9, 6]);
+  sctx.strokeRect(-fw / 2, -fh / 2, fw, fh);
+  sctx.setLineDash([]);
+  sctx.beginPath();                       // núm xoay
+  sctx.moveTo(0, -fh / 2); sctx.lineTo(0, -fh / 2 - 26);
+  sctx.strokeStyle = "#e0703c"; sctx.stroke();
+  sctx.beginPath(); sctx.arc(0, -fh / 2 - 33, 8, 0, Math.PI * 2);
+  sctx.fillStyle = "#e0703c"; sctx.fill();
+  sctx.fillStyle = "#fff";                // góc kéo
+  for (const [hx, hy] of [[-fw/2,-fh/2],[fw/2,-fh/2],[-fw/2,fh/2],[fw/2,fh/2]]){
+    sctx.fillRect(hx - 6, hy - 6, 12, 12);
+    sctx.strokeStyle = "#7a3418"; sctx.lineWidth = 1.5; sctx.strokeRect(hx - 6, hy - 6, 12, 12);
+  }
+  sctx.restore();
+  sctx.fillStyle = "#e0703ccc";
+  sctx.font = "600 13px 'Segoe UI', sans-serif";
+  sctx.fillText("VÙNG IN — ảnh xuất ra là hình vuông ôm theo khung này", 12, 22);
+}
+
+let drag = null;
+function pointerPos(ev){
+  const r = stage.getBoundingClientRect();
+  return { x: (ev.clientX - r.left) * stage.width / r.width,
+           y: (ev.clientY - r.top) * stage.height / r.height };
+}
+function toLocal(base, out, p){
+  const { fcx, fcy, rot } = frameCanvas(base, out);
+  const dx = p.x - fcx, dy = p.y - fcy;
+  const cos = Math.cos(rot), sin = Math.sin(rot);
+  return { lx: dx * cos + dy * sin, ly: -dx * sin + dy * cos };
+}
+stage.addEventListener("pointerdown", ev => {
+  const base = activeBase(); if (!base) return;
+  const out = stage.width, p = pointerPos(ev);
+  const { fw, fh } = frameCanvas(base, out);
+  const { lx, ly } = toLocal(base, out, p);
+  stage.setPointerCapture(ev.pointerId);
+  if (Math.hypot(lx, ly + fh / 2 + 33) < 16){ drag = { mode: "rotate" }; }
+  else {
+    const corners = [[-fw/2,-fh/2,"nw"],[fw/2,-fh/2,"ne"],[-fw/2,fh/2,"sw"],[fw/2,fh/2,"se"]];
+    const hit = corners.find(([hx, hy]) => Math.abs(lx - hx) < 13 && Math.abs(ly - hy) < 13);
+    if (hit) drag = { mode: "resize", corner: hit[2] };
+    else if (Math.abs(lx) <= fw / 2 && Math.abs(ly) <= fh / 2)
+      drag = { mode: "move", grabLx: lx, grabLy: ly };
+  }
+  if (drag){ stageQuick = true; ev.preventDefault(); }
+});
+stage.addEventListener("pointermove", ev => {
+  if (!drag) return;
+  const base = activeBase(); if (!base) return;
+  const out = stage.width, p = pointerPos(ev);
+  const { sc, crop } = frameCanvas(base, out);
+  const { lx, ly } = toLocal(base, out, p);
+  const f = base.frame;
+  if (drag.mode === "move"){
+    const rotR = f.rot * Math.PI / 180, cos = Math.cos(rotR), sin = Math.sin(rotR);
+    const dlx = lx - drag.grabLx, dly = ly - drag.grabLy;
+    f.cx += (dlx * cos - dly * sin) / sc;
+    f.cy += (dlx * sin + dly * cos) / sc;
+    f.cx = clamp(f.cx, 0, base.img.naturalWidth); f.cy = clamp(f.cy, 0, base.img.naturalHeight);
+  } else if (drag.mode === "resize"){
+    f.w = clamp(2 * Math.abs(lx) / sc, 40, base.img.naturalWidth);
+    f.h = clamp(2 * Math.abs(ly) / sc, 40, base.img.naturalHeight);
+  } else if (drag.mode === "rotate"){
+    const { fcx, fcy } = frameCanvas(base, out);
+    let ang = Math.atan2(p.y - fcy, p.x - fcx) * 180 / Math.PI + 90;
+    ang = ((ang + 180) % 360 + 360) % 360 - 180;
+    f.rot = clamp(Math.abs(ang) < 2 ? 0 : ang, -45, 45);
+    $("#rRot").value = f.rot; $("#oRot").textContent = f.rot.toFixed(1) + "°";
+  }
+  refreshStage(); persist();
+});
+const endDrag = () => { if (drag){ drag = null; stageQuick = false; refreshStage(); } };
+stage.addEventListener("pointerup", endDrag);
+stage.addEventListener("pointercancel", endDrag);
+
+/* ================= ĐIỀU KHIỂN ================= */
+function syncControls(){
+  $("#rWarp").value = S.settings.warp; $("#oWarp").textContent = S.settings.warp;
+  $("#rShade").value = Math.round(S.settings.shade * 100); $("#oShade").textContent = Math.round(S.settings.shade * 100) + "%";
+  $("#rDetail").value = Math.round(S.settings.detail * 100); $("#oDetail").textContent = Math.round(S.settings.detail * 100) + "%";
+  $("#cTrim").checked = S.settings.trim;
+  const b = activeBase();
+  $("#rRot").value = b ? b.frame.rot : 0; $("#oRot").textContent = (b ? b.frame.rot : 0).toFixed(1) + "°";
+  const d = activeDesign();
+  $("#adjSection").classList.toggle("hidden", !d);
+  if (d){
+    $("#rDScale").value = Math.round(d.adj.scale * 100); $("#oDScale").textContent = Math.round(d.adj.scale * 100) + "%";
+    $("#rDDx").value = d.adj.dx * 100; $("#oDDx").textContent = (d.adj.dx * 100).toFixed(0) + "%";
+    $("#rDDy").value = d.adj.dy * 100; $("#oDDy").textContent = (d.adj.dy * 100).toFixed(0) + "%";
+  }
+}
+function liveSetting(fn){ fn(); stageQuick = true; refreshStage(); scheduleFullRender(); persist(); }
+$("#rWarp").oninput = e => liveSetting(() => { S.settings.warp = +e.target.value; $("#oWarp").textContent = e.target.value; });
+$("#rShade").oninput = e => liveSetting(() => { S.settings.shade = +e.target.value / 100; $("#oShade").textContent = e.target.value + "%"; });
+$("#rDetail").oninput = e => liveSetting(() => { S.settings.detail = +e.target.value / 100; $("#oDetail").textContent = e.target.value + "%"; });
+$("#cTrim").onchange = e => { S.settings.trim = e.target.checked; refreshStage(); persist(); };
+$("#rRot").oninput = e => { const b = activeBase(); if (!b) return;
+  b.frame.rot = +e.target.value; $("#oRot").textContent = (+e.target.value).toFixed(1) + "°";
+  stageQuick = true; refreshStage(); scheduleFullRender(); persist(); };
+$("#rDScale").oninput = e => { const d = activeDesign(); if (!d) return;
+  d.adj.scale = +e.target.value / 100; $("#oDScale").textContent = e.target.value + "%"; stageQuick = true; refreshStage(); scheduleFullRender(); };
+$("#rDDx").oninput = e => { const d = activeDesign(); if (!d) return;
+  d.adj.dx = +e.target.value / 100; $("#oDDx").textContent = e.target.value + "%"; stageQuick = true; refreshStage(); scheduleFullRender(); };
+$("#rDDy").oninput = e => { const d = activeDesign(); if (!d) return;
+  d.adj.dy = +e.target.value / 100; $("#oDDy").textContent = e.target.value + "%"; stageQuick = true; refreshStage(); scheduleFullRender(); };
+$("#btnResetAdj").onclick = () => { const d = activeDesign(); if (!d) return;
+  d.adj = { scale: 1, dx: 0, dy: 0 }; syncControls(); refreshStage(); };
+$("#btnClearDesigns").onclick = () => { S.designs = []; S.activeDesignId = null; renderDesignGrid(); refreshStage(); syncControls(); };
+
+/* Kéo thả + chọn file */
+function wireDrop(zoneId, inputId, handler){
+  const zone = $(zoneId), input = $(inputId);
+  zone.onclick = () => input.click();
+  input.onchange = () => { handler([...input.files]); input.value = ""; };
+  zone.ondragover = ev => { ev.preventDefault(); zone.classList.add("over"); };
+  zone.ondragleave = () => zone.classList.remove("over");
+  zone.ondrop = ev => { ev.preventDefault(); zone.classList.remove("over"); handler([...ev.dataTransfer.files]); };
+}
+wireDrop("#dropBase", "#fileBase", addBases);
+wireDrop("#dropDesign", "#fileDesign", addDesigns);
+</script>
+<script>
+/* ================= XUẤT ẢNH + ZIP ================= */
+const CRC_TABLE = (() => { const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++){ let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c; } return t; })();
+function crc32(bytes){ let c = ~0;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return ~c >>> 0; }
+async function makeZip(files){
+  const enc = new TextEncoder();
+  const chunks = [], central = []; let offset = 0;
+  for (const f of files){
+    const data = new Uint8Array(await f.blob.arrayBuffer());
+    const nameBytes = enc.encode(f.name);
+    const crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+    lh.setUint16(26, nameBytes.length, true); lh.setUint16(28, 0, true);
+    chunks.push(new Uint8Array(lh.buffer), nameBytes, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+    ch.setUint16(28, nameBytes.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  }
+  let cdSize = 0; for (const c of central) cdSize += c.length;
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0, 0x06054b50, true);
+  eo.setUint16(8, files.length, true); eo.setUint16(10, files.length, true);
+  eo.setUint32(12, cdSize, true); eo.setUint32(16, offset, true);
+  return new Blob([...chunks, ...central, new Uint8Array(eo.buffer)], { type: "application/zip" });
+}
+function downloadBlob(blob, name){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function safeName(s){ return (s || "khong-ten").replace(/[\\/:*?"<>|]+/g, "-").trim() || "khong-ten"; }
+
+$("#btnExport").onclick = async () => {
+  const bases = S.bases.filter(b => b.selected);
+  const total = bases.length * S.designs.length;
+  if (!total) return;
+  const btn = $("#btnExport"); btn.disabled = true;
+  const files = []; let done = 0;
+  try {
+    for (const b of bases) for (const d of S.designs){
+      const cv = renderComposite(b, d, 1000, false);
+      const blob = await new Promise(r => cv.toBlob(r, "image/webp", 0.92));
+      if (!blob) throw new Error("Trình duyệt không xuất được WebP");
+      files.push({ name: `${safeName(d.name)}__${safeName(b.name)}.webp`, blob });
+      done++; $("#progress").textContent = `Đang xuất ${done}/${total}…`;
+      await new Promise(r => setTimeout(r, 10));
+    }
+    if (files.length === 1) downloadBlob(files[0].blob, files[0].name);
+    else downloadBlob(await makeZip(files), "mockups-urbanhomevibe.zip");
+    $("#progress").textContent = `Xong ${total} ảnh ✔`;
+  } catch (e) {
+    $("#progress").textContent = "Lỗi khi xuất: " + e.message;
+  }
+  updateExportBtn();
+};
+
+/* ================= KHỞI ĐỘNG: khôi phục áo mẫu đã lưu ================= */
+(async function init(){
+  await idb.open();
+  const saved = await idb.get("state");
+  if (saved){
+    if (saved.settings) Object.assign(S.settings, saved.settings);
+    for (const sb of saved.bases || []){
+      try {
+        const img = await loadImg(sb.dataUrl);
+        S.bases.push({ id: uid(), name: sb.name, img, dataUrl: sb.dataUrl,
+                       frame: sb.frame, selected: sb.selected !== false });
+      } catch { /* ảnh lưu hỏng thì bỏ qua */ }
+    }
+    S.activeBaseId = S.bases[0]?.id ?? null;
+  }
+  syncControls(); renderBaseList(); renderDesignGrid(); refreshStage();
+})();
+</script>
+</body>
+</html>
